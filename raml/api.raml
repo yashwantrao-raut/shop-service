@@ -1,0 +1,115 @@
+#%RAML 1.0
+title: New API
+version: v1
+baseUri: http://api.{env}.com/api
+mediaType:
+  - text/json
+protocols:
+  - https
+description: API is creaed to store and retirve the shop details.
+baseUriParameters:
+  env:
+    type: string
+    description: Environment name of the API.
+    example: localhost
+types:
+  ShopPostReq:
+    type: object
+    description: shop post method request object
+    properties:
+      name:
+        type: string
+        required: true
+        description: name of the shop, should be unique
+      address:
+        type: Address
+        description: address of the shop
+
+  Address:
+    type: object
+    description: address of the shop
+    properties:
+      number:
+        type: integer
+        required: true
+        description: address number
+      line1:
+        type: string
+        required: true
+        description: address line number 1
+      line2:
+        type: string
+        required: false
+        description: address line number 2
+      city:
+        type: string
+        required: true
+        description: city
+      state:
+        type: string
+        required: true
+        description: state
+      postCode:
+        type: integer
+        required: true
+        description: postal / pin code
+      country:
+        type: string
+        required: true
+        description: country
+
+  ShopPostResp:
+    type: object
+    description: Shop post method response object
+    properties:
+      name:
+        type: string
+        required: true
+        description: name of the shop
+      address:
+        type: Address
+        required: true
+        description: address of the shop
+
+/shops:
+  description: |
+    API for shops
+    API will add a shop
+    API will return nearest shop if passed lat and log
+  post:
+    description: |
+      API will validate provided address with geocoding API.
+      If Geocoding API returns more than one address then API will return conflict response.
+      If Geocoding API returns only one response then it will store it's geocoordinate in shop address,
+      updated shop will be returned.
+      If shop already exit with same name then it will replace existing with new and existing shop object will be returned in respnse.
+      It will return status code 201 if shop is added.
+      It will return 200 with previous verion shop object if it is replaced
+    body:
+      application/json:
+        type: ShopPostReq
+    responses:
+      201:
+      200:
+        body:
+          application/json:
+            type: object
+      400:
+      502:
+  get:
+    description: API will return the nearest shop from specified  location
+    queryParameters:
+      lat:
+        type: number
+        required: true
+        description: latitude of the customer location
+      lon:
+        type: number
+        required: true
+        description: longitude of the customer location
+    body:
+    responses:
+      200:
+        body:
+          application/json:
+            type: ShopPostResp
