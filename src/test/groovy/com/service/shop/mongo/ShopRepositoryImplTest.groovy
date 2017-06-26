@@ -72,11 +72,20 @@ class ShopRepositoryImplTest extends Specification {
         )
         def shop2 = new Shop(name: "shop1", address: address2)
         when:
-        def modify = repository.findAndModify(shop1, "shop1");
+        def modified = repository.findAndModify(shop2, "shop1");
 
         then:
         def shops = mongoTemplate.findAll(Shop)
         shops.size()==1
+        def shop = shops.first()
+        shop.name == shop2.name
+        shop.address.addressLine== address2.addressLine
+        shop.address.state== address2.state
+        shop.address.city== address2.city
 
+        def oldShop = modified.get()
+        oldShop.address.addressLine == address1.addressLine
+        oldShop.address.city == address1.city
+        oldShop.address.state == address1.state
     }
 }
