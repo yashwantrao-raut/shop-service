@@ -14,7 +14,10 @@ public class Shop {
 
     private Address address;
 
-    public Shop( String name, Address address) {
+    public Shop() {
+    }
+
+    public Shop(String name, Address address) {
         this.name = name;
         this.address = address;
     }

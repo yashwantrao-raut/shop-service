@@ -3,7 +3,6 @@ package com.service.shop.controller.formatter
 import com.service.shop.controller.req.AddressReq
 import spock.lang.Specification
 
-
 class GeocodingAddressFormatterTest extends Specification {
     GeocodingAddressFormatter formatter;
     void setup() {

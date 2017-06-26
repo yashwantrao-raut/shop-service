@@ -13,8 +13,9 @@ public class Address {
     private String contact;
     private String postCode;
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
-    GeoJsonPoint point;
-
+    private GeoJsonPoint point;
+    public Address() {
+    }
     public Address(Integer number, String addressLine, String city, String state, String country, String contact, String postCode, GeoJsonPoint point) {
         this.number = number;
         this.addressLine = addressLine;
@@ -25,6 +26,7 @@ public class Address {
         this.postCode = postCode;
         this.point = point;
     }
+
 
     public Integer getNumber() {
         return number;
