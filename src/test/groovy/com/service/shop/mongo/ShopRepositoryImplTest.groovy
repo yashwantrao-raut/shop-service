@@ -1,8 +1,6 @@
 package com.service.shop.mongo
 
 import com.mongodb.BasicDBObject
-import com.mongodb.DBObject
-import com.service.shop.controller.formatter.GeocodingAddressFormatter
 import com.service.shop.mongo.document.Address
 import com.service.shop.mongo.document.Shop
 import org.springframework.beans.factory.annotation.Autowired
