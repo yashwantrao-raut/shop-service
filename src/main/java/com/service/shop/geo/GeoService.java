@@ -7,12 +7,12 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class GeoService {
     private RestTemplate restTemplate;
-
-    @Value("${geocoding.service.url}")
     private String uri;
 
-    public GeoService() {
-        restTemplate= new RestTemplate();
+    @Autowired
+    public GeoService(RestTemplate restTemplate, @Value("${geocoding.service.url}")String uri) {
+        this.restTemplate = restTemplate;
+        this.uri = uri;
     }
 
     public GeoResponse find(String  formattedAddress) {
