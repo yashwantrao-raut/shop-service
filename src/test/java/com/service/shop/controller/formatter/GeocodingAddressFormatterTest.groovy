@@ -10,7 +10,7 @@ class GeocodingAddressFormatterTest extends Specification {
         formatter= new GeocodingAddressFormatter()
     }
 
-    def "should format given address in geocoding api format address"() {
+    def "should format given address in geocoding api needed parameter format"() {
         given:
         def addressReq=new AddressReq(addressLine: "address line",number: 123,city: "city",state: "state",country: "india",postCode: "1234")
         when:

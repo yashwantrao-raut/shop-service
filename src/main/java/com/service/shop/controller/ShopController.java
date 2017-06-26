@@ -2,6 +2,7 @@ package com.service.shop.controller;
 
 import com.service.shop.controller.formatter.GeocodingAddressFormatter;
 import com.service.shop.controller.req.ShopReq;
+import com.service.shop.controller.resp.ConflictResponse;
 import com.service.shop.converter.ShopToAndFromConverter;
 import com.service.shop.geo.GeoResponse;
 import com.service.shop.geo.GeoService;
@@ -13,8 +14,11 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("shops")
@@ -29,22 +33,33 @@ public class ShopController {
     @Autowired
     private ShopRepository shopRepository;
 
-    Predicate<GeoResponse> isValidGeoResponse = response -> "OK".equals(response.getStatus()) && response.getResults().size() == 1;
+    Predicate<GeoResponse> isValidGeoResponse = response -> "OK".equals(response.getStatus());
+    Predicate<GeoResponse> isZeoResult = response -> "ZERO_RESULTS".equals(response.getStatus());
+    Predicate<GeoResponse> isOnlyoneResultFound = response -> response.getResults().size() == 1;
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity addShop(@RequestBody ShopReq shopReq) {
         String formattedAddress = geocodingAddressFormatter.format(shopReq.getAddress());
         GeoResponse geoResponse = geoService.find(formattedAddress);
         if (isValidGeoResponse.test(geoResponse)) {
-            Location location = geoResponse.getResults().get(0).getGeometry().getLocation();
-            Shop shop = shopToAndFromConverter.convertToShop(shopReq, location.getLng(), location.getLat());
-            Optional<Shop> anyModified = shopRepository.findAndModify(shop, shop.getName());
-            if(anyModified.isPresent()){
-                return ResponseEntity.ok(shopToAndFromConverter.convertFromShop(anyModified.get()));
+            if(isOnlyoneResultFound.test(geoResponse)){
+                Location location = geoResponse.getResults().get(0).getGeometry().getLocation();
+                Shop shop = shopToAndFromConverter.convertToShop(shopReq, location.getLng(), location.getLat());
+                Optional<Shop> anyModified = shopRepository.findAndModify(shop, shop.getName());
+                if (anyModified.isPresent()) {
+                    return ResponseEntity.ok(shopToAndFromConverter.convertFromShop(anyModified.get()));
+                }
+                return ResponseEntity.status(201).build();
             }
-            return ResponseEntity.status(201).build();
+            List<String> addresses = geoResponse.getResults().stream().map(result -> result.getFormattedAddress()).collect(Collectors.toList());
+            ConflictResponse<String,String> conflictResponse= new ConflictResponse<>(Arrays.asList("Multiple matching address found"),addresses);
+            return ResponseEntity.status(409).body(conflictResponse);
+
         }
-        return ResponseEntity.status(409).body("Multiple geolocation founds");
+        else if(isZeoResult.test(geoResponse)){
+            return ResponseEntity.status(400).body("No matching geolocation found for address");
+        }
+        return ResponseEntity.status(502).build();
     }
 
     @RequestMapping(method = RequestMethod.GET)
