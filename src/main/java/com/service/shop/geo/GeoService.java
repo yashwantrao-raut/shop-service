@@ -1,14 +1,18 @@
 package com.service.shop.geo;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 @Service
 public class GeoService {
-    RestTemplate restTemplate;
-    final String uri = "https://maps.googleapis.com/maps/api/geocode/json?address=";
+    private RestTemplate restTemplate;
+
+    @Value("${geocoding.service.url}")
+    private String uri;
 
     public GeoService() {
-        restTemplate = new RestTemplate();
+        restTemplate= new RestTemplate();
     }
 
     public GeoResponse find(String  formattedAddress) {
