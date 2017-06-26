@@ -3,6 +3,7 @@ package com.service.shop.controller
 import com.service.shop.controller.formatter.GeocodingAddressFormatter
 import com.service.shop.controller.req.AddressReq
 import com.service.shop.controller.req.ShopReq
+import com.service.shop.controller.resp.ShopResp
 import com.service.shop.converter.ShopToAndFromConverter
 import com.service.shop.geo.GeoResponse
 import com.service.shop.geo.GeoService
@@ -13,8 +14,6 @@ import com.service.shop.mongo.ShopRepository
 import com.service.shop.mongo.document.Address
 import com.service.shop.mongo.document.Shop
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint
-import org.springframework.http.ResponseEntity
-import spock.lang.Ignore
 import spock.lang.Specification
 class ShopControllerTest extends Specification {
     ShopController controller
@@ -32,7 +31,7 @@ class ShopControllerTest extends Specification {
 
     }
 
-    def "should add shop and return 201 response if shop is already not present with that name"() {
+    def "should add shop and return  ResponseEntity with 201 if shop already not exist with same name"() {
         given:
         def addressReq = new AddressReq(addressLine: "address line", number: 123, city: "city", state: "state", country: "india", postCode: "1234")
         def shopReq = new ShopReq(name: "shop 1", address: addressReq)
@@ -65,6 +64,42 @@ class ShopControllerTest extends Specification {
     }
 
     def "should return near shop from customer lat , lan"() {
+        given:
+        def lat=12.99
+        def lan=34.11
+        def point = new GeoJsonPoint(lan,lat)
+        def address = new Address(
+                addressLine: "address line",
+                number: 123,
+                city: "city",
+                state: "state",
+                country: "india",
+                postCode: "1234",
+                point: point
+        )
+        def shop = new Shop(name: "shop 1", address: address)
+        def shopRepoStub= Stub(ShopRepository)
+        shopRepoStub.findByAddressPointNear(_) >> {GeoJsonPoint p-> return  shop}
+        def controller= new ShopController(geocodingAddressFormatterMock,shopToAndFromConverterMock,geoServiceMock,shopRepoStub)
 
+        when:
+        def response=controller.findNear(lan,lat)
+
+        then:
+        response.statusCode.value() ==200
+    }
+    def "should return 404 if near shop does not exit from customer lat , lan"() {
+        given:
+        def lat=12.99
+        def lan=34.11
+        def shopRepoStub= Stub(ShopRepository)
+        shopRepoStub.findByAddressPointNear(_) >> {GeoJsonPoint p-> return  null}
+        def controller= new ShopController(geocodingAddressFormatterMock,shopToAndFromConverterMock,geoServiceMock,shopRepoStub)
+
+        when:
+        def response=controller.findNear(lan,lat)
+
+        then:
+        response.statusCode.value() ==404
     }
 }

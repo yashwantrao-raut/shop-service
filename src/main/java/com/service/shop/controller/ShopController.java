@@ -27,6 +27,9 @@ public class ShopController {
     private ShopToAndFromConverter shopToAndFromConverter;
     private GeoService geoService;
     private ShopRepository shopRepository;
+    private Predicate<GeoResponse> isValidGeoResponse = response -> "OK".equals(response.getStatus());
+    private  Predicate<GeoResponse> isZeoResult = response -> "ZERO_RESULTS".equals(response.getStatus());
+    private Predicate<GeoResponse> isOnlyoneResultFound = response -> response.getResults().size() == 1;
 
     @Autowired
     public ShopController(GeocodingAddressFormatter geocodingAddressFormatter, ShopToAndFromConverter shopToAndFromConverter, GeoService geoService, ShopRepository shopRepository) {
@@ -35,10 +38,6 @@ public class ShopController {
         this.geoService = geoService;
         this.shopRepository = shopRepository;
     }
-
-    Predicate<GeoResponse> isValidGeoResponse = response -> "OK".equals(response.getStatus());
-    Predicate<GeoResponse> isZeoResult = response -> "ZERO_RESULTS".equals(response.getStatus());
-    Predicate<GeoResponse> isOnlyoneResultFound = response -> response.getResults().size() == 1;
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity addShop(@RequestBody ShopReq shopReq) {
@@ -66,7 +65,7 @@ public class ShopController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity getNear(@RequestParam Double lan, @RequestParam Double lat) {
+    public ResponseEntity findNear(@RequestParam Double lan, @RequestParam Double lat) {
         Shop near = shopRepository.findByAddressPointNear(new GeoJsonPoint(lan, lat));
         if(near!=null) {
             return ResponseEntity.ok(shopToAndFromConverter.convertFromShop(near));
