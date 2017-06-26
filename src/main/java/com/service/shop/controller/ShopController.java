@@ -23,15 +23,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("shops")
 public class ShopController {
+    private GeocodingAddressFormatter geocodingAddressFormatter;
+    private ShopToAndFromConverter shopToAndFromConverter;
+    private GeoService geoService;
+    private ShopRepository shopRepository;
 
     @Autowired
-    private GeocodingAddressFormatter geocodingAddressFormatter;
-    @Autowired
-    private ShopToAndFromConverter shopToAndFromConverter;
-    @Autowired
-    private GeoService geoService;
-    @Autowired
-    private ShopRepository shopRepository;
+    public ShopController(GeocodingAddressFormatter geocodingAddressFormatter, ShopToAndFromConverter shopToAndFromConverter, GeoService geoService, ShopRepository shopRepository) {
+        this.geocodingAddressFormatter = geocodingAddressFormatter;
+        this.shopToAndFromConverter = shopToAndFromConverter;
+        this.geoService = geoService;
+        this.shopRepository = shopRepository;
+    }
 
     Predicate<GeoResponse> isValidGeoResponse = response -> "OK".equals(response.getStatus());
     Predicate<GeoResponse> isZeoResult = response -> "ZERO_RESULTS".equals(response.getStatus());
