@@ -13,7 +13,7 @@ baseUriParameters:
     description: Environment name of the API.
     example: localhost
 types:
-  ShopPostReq:
+  ShopReq:
     type: object
     description: shop post method request object
     properties:
@@ -22,10 +22,10 @@ types:
         required: true
         description: name of the shop, should be unique
       address:
-        type: Address
+        type: AddressReq
         description: address of the shop
 
-  Address:
+  AddressReq:
     type: object
     description: address of the shop
     properties:
@@ -54,7 +54,57 @@ types:
         required: true
         description: country
 
-  ShopPostResp:
+   AddressResp:
+      type: object
+      description: address of the shop
+      properties:
+        number:
+          type: integer
+          required: true
+          description: address number
+        addressLine:
+          type: string
+          required: true
+          description: address line
+        city:
+          type: string
+          required: true
+          description: city
+        state:
+          type: string
+          required: true
+          description: state
+        postCode:
+          type: integer
+          required: true
+          description: postal / pin code
+        country:
+          type: string
+          required: true
+          description: country
+        location:
+          type: LocationResp
+          required: true
+          description: geo location
+
+    LocationResp:
+      type: object
+      description: geo location
+          properties:
+            type:
+              type: string
+              required: true
+              description: type of locaion
+            lan:
+              type: integer
+              required: true
+              description: longitude
+            lat:
+              type: string
+              required: true
+              description: latitude
+
+  ShopResp:
     type: object
     description: Shop post method response object
     properties:
@@ -63,7 +113,7 @@ types:
         required: true
         description: name of the shop
       address:
-        type: Address
+        type: AddressResp
         required: true
         description: address of the shop
 
@@ -83,14 +133,15 @@ types:
       It will return 200 with previous verion shop object if it is replaced
     body:
       application/json:
-        type: ShopPostReq
+        type: ShopReq
     responses:
       201:
       200:
         body:
           application/json:
-            type: object
+            type: ShopResp
       400:
+      409:
       502:
   get:
     description: API will return the nearest shop from specified  location
@@ -108,4 +159,6 @@ types:
       200:
         body:
           application/json:
-            type: ShopPostResp
+            type: ShopResp
+      404:
+      400:
