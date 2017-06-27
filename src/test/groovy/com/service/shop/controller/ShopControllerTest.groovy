@@ -3,18 +3,14 @@ package com.service.shop.controller
 import com.service.shop.controller.formatter.GeocodingAddressFormatter
 import com.service.shop.controller.req.AddressReq
 import com.service.shop.controller.req.ShopReq
-import com.service.shop.controller.resp.ShopResp
 import com.service.shop.converter.ShopToAndFromConverter
-import com.service.shop.geo.GeoResponse
-import com.service.shop.geo.GeoService
-import com.service.shop.geo.Geometry
-import com.service.shop.geo.Location
-import com.service.shop.geo.Result
+import com.service.shop.geo.*
 import com.service.shop.mongo.ShopRepository
 import com.service.shop.mongo.document.Address
 import com.service.shop.mongo.document.Shop
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint
 import spock.lang.Specification
+
 class ShopControllerTest extends Specification {
     ShopController controller
     def shopRepositoryMock
