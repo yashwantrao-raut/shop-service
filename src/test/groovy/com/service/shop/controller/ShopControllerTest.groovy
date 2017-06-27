@@ -74,9 +74,7 @@ class ShopControllerTest extends Specification {
                 point: point
         )
         def shop = new Shop(name: "shop 1", address: address)
-        def shopRepoStub= Stub(ShopRepository)
-        shopRepoStub.findByAddressPointNear(_) >> {GeoJsonPoint p-> return  shop}
-        def controller= new ShopController(geocodingAddressFormatterMock,shopToAndFromConverterMock,geoServiceMock,shopRepoStub)
+        shopRepositoryMock.findByAddressPointNear(_) >> shop
 
         when:
         def response=controller.findNear(lan,lat)
@@ -88,9 +86,7 @@ class ShopControllerTest extends Specification {
         given:
         def lat=12.99
         def lan=34.11
-        def shopRepoStub= Stub(ShopRepository)
-        shopRepoStub.findByAddressPointNear(_) >> {GeoJsonPoint p-> return  null}
-        def controller= new ShopController(geocodingAddressFormatterMock,shopToAndFromConverterMock,geoServiceMock,shopRepoStub)
+        shopRepositoryMock.findByAddressPointNear(_) >> null
 
         when:
         def response=controller.findNear(lan,lat)
