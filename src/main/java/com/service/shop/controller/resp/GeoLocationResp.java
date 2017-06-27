@@ -10,6 +10,10 @@ public class GeoLocationResp {
         this.lan = lan;
         this.lat = lat;
     }
+
+    public GeoLocationResp() {
+    }
+
     public String getType() {
         return type;
     }

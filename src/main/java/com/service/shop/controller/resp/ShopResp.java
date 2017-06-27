@@ -9,6 +9,9 @@ public class ShopResp {
         this.address = address;
     }
 
+    public ShopResp() {
+    }
+
     public String getName() {
         return name;
     }

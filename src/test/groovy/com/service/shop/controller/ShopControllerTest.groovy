@@ -3,13 +3,22 @@ package com.service.shop.controller
 import com.service.shop.controller.formatter.GeocodingAddressFormatter
 import com.service.shop.controller.req.AddressReq
 import com.service.shop.controller.req.ShopReq
+import com.service.shop.controller.resp.AddressResp
+import com.service.shop.controller.resp.GeoLocationResp
+import com.service.shop.controller.resp.ShopResp
 import com.service.shop.converter.ShopToAndFromConverter
 import com.service.shop.geo.*
 import com.service.shop.mongo.ShopRepository
 import com.service.shop.mongo.document.Address
 import com.service.shop.mongo.document.Shop
+import groovy.json.JsonSlurper
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+
+import static org.springframework.http.HttpStatus.NOT_FOUND
+import static org.springframework.http.HttpStatus.OK
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 class ShopControllerTest extends Specification {
     ShopController controller
@@ -17,6 +26,8 @@ class ShopControllerTest extends Specification {
     def geoServiceMock
     def geocodingAddressFormatterMock
     def shopToAndFromConverterMock
+    def mockMvc
+
 
     public void setup(){
         geocodingAddressFormatterMock=Mock(GeocodingAddressFormatter)
@@ -24,6 +35,7 @@ class ShopControllerTest extends Specification {
         geoServiceMock=Mock(GeoService)
         shopRepositoryMock=Mock(ShopRepository)
         controller = new ShopController(geocodingAddressFormatterMock,shopToAndFromConverterMock,geoServiceMock,shopRepositoryMock)
+        mockMvc=MockMvcBuilders.standaloneSetup(controller).build()
 
     }
 
@@ -75,23 +87,39 @@ class ShopControllerTest extends Specification {
         )
         def shop = new Shop(name: "shop 1", address: address)
         shopRepositoryMock.findByAddressPointNear(_) >> shop
+        def geoLocationResp = new GeoLocationResp("point",lan,lat)
+        def addressResp = new AddressResp(
+                addressLine: "address line",
+                number: 123,
+                city: "city",
+                state: "state",
+                country: "india",
+                postCode: "1234",
+                location: geoLocationResp
+        )
+        def shopResp = new ShopResp(name: "shop 1", address: addressResp)
+        shopToAndFromConverterMock.convertFromShop(shop)>>shopResp
 
         when:
-        def response=controller.findNear(lan,lat)
+        def response = mockMvc.perform(get('/shops').param("lan","12.99").param("lat","34.22")).andReturn().response
 
         then:
-        response.statusCode.value() ==200
+        response.status == OK.value()
+        def content = new JsonSlurper().parseText(response.contentAsString)
+        content.name == shop.name
+        content.address.addressLine == shop.address.addressLine
+
+
     }
     def "should return 404 if near shop does not exit from customer lat , lan"() {
         given:
-        def lat=12.99
-        def lan=34.11
         shopRepositoryMock.findByAddressPointNear(_) >> null
 
         when:
-        def response=controller.findNear(lan,lat)
+
+        def response = mockMvc.perform(get('/shops').param("lan","12.99").param("lat","34.22")).andReturn().response
 
         then:
-        response.statusCode.value() ==404
+        response.status == NOT_FOUND.value()
     }
 }

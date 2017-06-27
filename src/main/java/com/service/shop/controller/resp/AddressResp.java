@@ -21,6 +21,9 @@ public class AddressResp {
         this.location = location;
     }
 
+    public AddressResp() {
+    }
+
     public Integer getNumber() {
         return number;
     }
