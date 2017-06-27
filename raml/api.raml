@@ -126,8 +126,7 @@ types:
     description: |
       API will validate provided address with geocoding API.
       If Geocoding API returns more than one address then API will return conflict response.
-      If Geocoding API returns only one response then it will store it's geocoordinate in shop address,
-      updated shop will be returned.
+      If Geocoding API returns only one response then it will store it's geocoordinate in shop address.
       If shop already exit with same name then it will replace existing with new and existing shop object will be returned in respnse.
       It will return status code 201 if shop is added.
       It will return 200 with previous verion shop object if it is replaced
