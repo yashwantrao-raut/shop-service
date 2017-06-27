@@ -11,14 +11,16 @@ import com.service.shop.geo.*
 import com.service.shop.mongo.ShopRepository
 import com.service.shop.mongo.document.Address
 import com.service.shop.mongo.document.Shop
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 
-import static org.springframework.http.HttpStatus.NOT_FOUND
-import static org.springframework.http.HttpStatus.OK
+import static org.springframework.http.HttpStatus.*
+import static org.springframework.http.MediaType.APPLICATION_JSON
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class ShopControllerTest extends Specification {
     ShopController controller
@@ -44,7 +46,7 @@ class ShopControllerTest extends Specification {
         def addressReq = new AddressReq(addressLine: "address line", number: 123, city: "city", state: "state", country: "india", postCode: "1234")
         def shopReq = new ShopReq(name: "shop 1", address: addressReq)
         def formattedAddress = "address line,city,state,india 1234"
-        geocodingAddressFormatterMock.format(addressReq)>> formattedAddress
+        geocodingAddressFormatterMock.format(_)>> formattedAddress
         def location = new Location(lat: 11, lng: 23)
         def results=[new Result(geometry: new Geometry(location: location))]
         def geoResponse=new GeoResponse(status: "OK",results: results)
@@ -60,14 +62,15 @@ class ShopControllerTest extends Specification {
                 point: point
         )
         def shop = new Shop(name: "shop 1", address: address)
-        shopToAndFromConverterMock.convertToShop(shopReq,location.lng,location.lat)>>shop
+        shopToAndFromConverterMock.convertToShop(_,location.lng,location.lat)>>shop
         shopRepositoryMock.findAndModify(shop,shop.name) >>Optional.ofNullable(null)
+        def reqBody= JsonOutput.toJson(shopReq)
         when:
+        def response = mockMvc.perform(post('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
 
-        def entity = controller.addShop(shopReq)
 
         then:
-        entity.statusCode.value() ==201
+        response.status == CREATED.value()
 
     }
 
