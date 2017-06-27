@@ -86,4 +86,48 @@ class ShopRepositoryImplTest extends Specification {
         oldShop.address.city == address1.city
         oldShop.address.state == address1.state
     }
+
+    def "should find nearest shop from given location "() {
+        given:
+        def lan1 = 73.95764789999998
+        def lat1 = 18.4808374
+        def point1 = new GeoJsonPoint(lan1, lat1)
+        def address1 = new Address(
+                addressLine: "green county, hadapsar",
+                number: 123,
+                city: "pune",
+                state: "mh",
+                country: "india",
+                postCode: "1234",
+                point: point1
+        )
+        def shop1 = new Shop(name: "shop 1", address: address1)
+        mongoTemplate.insert(shop1);
+        def lan2 = 73.92716440000004
+        def lat2 = 18.5158057
+        def point2 = new GeoJsonPoint(lan2, lat2)
+        def address2 = new Address(
+                addressLine: "Magarpatta City",
+                number: 123,
+                city: "pune",
+                state: "mh",
+                country: "india",
+                postCode: "1234",
+                point: point2
+        )
+        def shop2 = new Shop(name: "shop 2", address: address2)
+        mongoTemplate.insert(shop2);
+        def userlan=73.95075429999997
+        def userlat=18.5514828
+        def userPoint = new GeoJsonPoint(userlan, userlat)
+
+        when:
+        def shop = repository.findByAddressPointNear(userPoint);
+
+        then:
+        shop.name == shop2.name
+        shop.address.addressLine == shop2.address.addressLine
+        shop.address.point.coordinates == shop2.address.point.coordinates
+
+    }
 }
