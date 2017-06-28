@@ -4,6 +4,7 @@ More info about raml http://raml.org/
 
  ## Following technologies used  
  #### Spring Boot  
+ #### Java 8  
  #### In Memory Mongo  
  #### Spock framework  
  #### Groovy -For Test Cases  
