@@ -64,7 +64,9 @@ class ShopControllerTest extends Specification {
         def shop = new Shop(name: "shop 1", address: address)
         shopToAndFromConverterMock.convertToShop(_,location.lng,location.lat)>>shop
         shopRepositoryMock.findAndModify(shop,shop.name) >>Optional.ofNullable(null)
+        
         def reqBody= JsonOutput.toJson(shopReq)
+
         when:
         def response = mockMvc.perform(post('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
 
@@ -73,7 +75,95 @@ class ShopControllerTest extends Specification {
         response.status == CREATED.value()
 
     }
+    def "should modify existing shop and return  200 with earlier version of shop "() {
+        given:
+        def addressReq = new AddressReq(addressLine: "address line 2", number: 123, city: "city2", state: "state2", country: "india", postCode: "1234")
+        def shopReq = new ShopReq(name: "shop 1", address: addressReq)
+        def formattedAddress = "address line,city,state,india 1234"
+        geocodingAddressFormatterMock.format(_)>> formattedAddress
+        def location = new Location(lat: 11, lng: 23)
+        def results=[new Result(geometry: new Geometry(location: location))]
+        def geoResponse=new GeoResponse(status: "OK",results: results)
+        geoServiceMock.find(formattedAddress)>>geoResponse
+        def point = new GeoJsonPoint(location.lng, location.lat)
+        def address = new Address(
+                addressLine: "address line 2",
+                number: 123,
+                city: "city2",
+                state: "state2",
+                country: "india",
+                postCode: "1234",
+                point: point
+        )
+        def shop = new Shop(name: "shop 1", address: address)
+        shopToAndFromConverterMock.convertToShop(_,location.lng,location.lat)>>shop
+        def geoLocationResp = new GeoLocationResp("point",location.lng,location.lat)
+        def addressResp = new AddressResp(
+                addressLine: "address line",
+                number: 123,
+                city: "city",
+                state: "state",
+                country: "india",
+                postCode: "1234",
+                location: geoLocationResp
+        )
+        def shopResp = new ShopResp(name: "shop 1", address: addressResp)
+        shopRepositoryMock.findAndModify(shop,shop.name) >>Optional.ofNullable(shop)
+        shopToAndFromConverterMock.convertFromShop(shop)>>shopResp
 
+        def reqBody= JsonOutput.toJson(shopReq)
+
+        when:
+        def response = mockMvc.perform(post('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
+
+
+        then:
+        response.status == OK.value()
+        def content = new JsonSlurper().parseText(response.contentAsString)
+        content.name == shopResp.name
+        content.address.addressLine == shopResp.address.addressLine
+
+    }
+    def "should return conflict response (409)  if  geocoding api  found multiple matching address"() {
+        given:
+        def addressReq = new AddressReq(addressLine: "address line 2", number: 123, city: "city2", state: "state2", country: "india", postCode: "1234")
+        def shopReq = new ShopReq(name: "shop 1", address: addressReq)
+        def formattedAddress = "address line,city,state,india 1234"
+        geocodingAddressFormatterMock.format(_)>> formattedAddress
+        def location = new Location(lat: 11, lng: 23)
+        def results=[new Result(geometry: new Geometry(location: location),formattedAddress: "address 1"),new Result(geometry: new Geometry(location: location),formattedAddress: "address 2")]
+        def geoResponse=new GeoResponse(status: "OK",results: results)
+        geoServiceMock.find(formattedAddress)>>geoResponse
+
+        def reqBody= JsonOutput.toJson(shopReq)
+
+        when:
+        def response = mockMvc.perform(post('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
+
+
+        then:
+        response.status == CONFLICT.value()
+        def content = new JsonSlurper().parseText(response.contentAsString)
+        content.messages== Arrays.asList("Multiple matching address found")
+        content.responseObjects== Arrays.asList("address 1","address 2")
+
+    }
+    def "should return bad gateway response if geocoding api  does not return valid response"() {
+        given:
+        def addressReq = new AddressReq(addressLine: "address line 2", number: 123, city: "city2", state: "state2", country: "india", postCode: "1234")
+        def shopReq = new ShopReq(name: "shop 1", address: addressReq)
+        def formattedAddress = "address line,city,state,india 1234"
+        geocodingAddressFormatterMock.format(_)>> formattedAddress
+        def geoResponse=new GeoResponse(status: "UNKNOWN_ERROR",results: [])
+        geoServiceMock.find(formattedAddress)>>geoResponse
+
+        def reqBody= JsonOutput.toJson(shopReq)
+        when:
+        def response = mockMvc.perform(post('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
+
+        then:
+        response.status == BAD_GATEWAY.value()
+    }
     def "should return near shop from customer lat , lan"() {
         given:
         def lat=12.99
@@ -119,7 +209,6 @@ class ShopControllerTest extends Specification {
         shopRepositoryMock.findByAddressPointNear(_) >> null
 
         when:
-
         def response = mockMvc.perform(get('/shops').param("lan","12.99").param("lat","34.22")).andReturn().response
 
         then:
