@@ -1,5 +1,5 @@
 
-package com.service.shop.geo;
+package com.service.shop.geocoding;
 
 import com.fasterxml.jackson.annotation.*;
 

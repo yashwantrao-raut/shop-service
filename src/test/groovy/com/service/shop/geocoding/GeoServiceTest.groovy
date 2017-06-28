@@ -1,4 +1,4 @@
-package com.service.shop.geo
+package com.service.shop.geocoding
 
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification

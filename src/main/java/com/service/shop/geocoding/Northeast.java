@@ -1,5 +1,5 @@
 
-package com.service.shop.geo;
+package com.service.shop.geocoding;
 
 import com.fasterxml.jackson.annotation.*;
 
@@ -12,7 +12,7 @@ import java.util.Map;
     "lat",
     "lng"
 })
-public class Location {
+public class Northeast {
 
     @JsonProperty("lat")
     private Double lat;
@@ -41,7 +41,6 @@ public class Location {
     public void setLng(Double lng) {
         this.lng = lng;
     }
-
 
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {

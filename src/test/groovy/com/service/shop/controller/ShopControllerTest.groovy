@@ -7,7 +7,7 @@ import com.service.shop.controller.resp.AddressResp
 import com.service.shop.controller.resp.GeoLocationResp
 import com.service.shop.controller.resp.ShopResp
 import com.service.shop.converter.ShopToAndFromConverter
-import com.service.shop.geo.*
+import com.service.shop.geocoding.*
 import com.service.shop.mongo.ShopRepository
 import com.service.shop.mongo.document.Address
 import com.service.shop.mongo.document.Shop
@@ -64,7 +64,7 @@ class ShopControllerTest extends Specification {
         def shop = new Shop(name: "shop 1", address: address)
         shopToAndFromConverterMock.convertToShop(_,location.lng,location.lat)>>shop
         shopRepositoryMock.findAndModify(shop,shop.name) >>Optional.ofNullable(null)
-        
+
         def reqBody= JsonOutput.toJson(shopReq)
 
         when:
