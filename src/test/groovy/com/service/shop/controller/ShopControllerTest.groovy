@@ -19,7 +19,8 @@ import spock.lang.Specification
 
 import static org.springframework.http.HttpStatus.*
 import static org.springframework.http.MediaType.APPLICATION_JSON
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class ShopControllerTest extends Specification {
     ShopController controller
@@ -65,7 +66,7 @@ class ShopControllerTest extends Specification {
         shopRepositoryMock.findAndModify(shop,shop.name) >>Optional.ofNullable(null)
         def reqBody= JsonOutput.toJson(shopReq)
         when:
-        def response = mockMvc.perform(put('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
+        def response = mockMvc.perform(post('/shops').contentType(APPLICATION_JSON).content(reqBody)).andReturn().response
 
 
         then:
