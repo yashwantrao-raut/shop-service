@@ -39,7 +39,7 @@ public class ShopController {
         this.shopRepository = shopRepository;
     }
 
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.PUT)
     public ResponseEntity addShop(@RequestBody ShopReq shopReq) {
         String formattedAddress = geocodingAddressFormatter.format(shopReq.getAddress());
         GeoResponse geoResponse = geoService.find(formattedAddress);
