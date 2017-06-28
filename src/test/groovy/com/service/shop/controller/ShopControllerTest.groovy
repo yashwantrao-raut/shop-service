@@ -41,7 +41,7 @@ class ShopControllerTest extends Specification {
 
     }
 
-    def "should add shop and return  ResponseEntity with 201 if shop already not exist with same name"() {
+    def "should add shop and return  201 if shop already not exist with same name"() {
         given:
         def addressReq = new AddressReq(addressLine: "address line", number: 123, city: "city", state: "state", country: "india", postCode: "1234")
         def shopReq = new ShopReq(name: "shop 1", address: addressReq)
